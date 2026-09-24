@@ -4,11 +4,16 @@
 > hook CDP no app desktop, token só em memória, headers anti-abuse autênticos,
 > automação de guild/branding/roles e configuração de bots (Dyno + Zira).
 
-[![Formato](https://img.shields.io/badge/manifest-.claude--plugin-823AFF)](.claude-plugin)
-[![Versão](https://img.shields.io/badge/version-0.1.0-blue)](plugin.json)
+[![Formato](https://img.shields.io/badge/manifest-SoarPack-823AFF)](manifest.json)
+[![Versão](https://img.shields.io/badge/version-1.0.0-blue)](manifest.json)
 [![Plataforma](https://img.shields.io/badge/testado-Fedora%2044%20·%20flatpak-29ABE2)](#requisitos)
 
-Este plugin nasceu de um workflow **validado em produção** (servidor SoarCode,
+Esta branch é o exemplo de staging SoarPack nativo: o `manifest.json` na raiz é
+instalado do GitHub como fonte não assinada, sempre desativada e sem update
+automático. O mesmo conteúdo pode ser empacotado e publicado por um registry
+assinado para release.
+
+Este pacote nasceu de um workflow **validado em produção** (servidor SoarCode,
 set/2026): tudo que está aqui foi executado de verdade — criação da guild,
 estrutura de canais, onboarding, screening, branding, hierarquia de cargos,
 configuração completa do Dyno e menu de button-roles do Zira.
@@ -17,14 +22,14 @@ configuração completa do Dyno e menu de button-roles do Zira.
 
 ## O que este plugin faz
 
-| Componente | Tipo | O que faz |
-| --- | --- | --- |
-| `discord-control-kit` | Skill | Técnica núcleo: relançar o app com CDP, resolver o token (multi-runtime webpack), capturar headers anti-abuse, helper REST in-page, rate-limit-aware |
-| `discord-server-build` | Skill | Guild do zero: categorias/canais, onboarding, screening, branding (ícone/banner/splash), hierarquia de cargos |
-| `discord-bots-dyno-zira` | Skill | Configurar Dyno (API do dashboard) e Zira (button roles via API + UI) |
-| `discord-setup` | Command | `/discord-setup` — onboarding de máquina nova: pré-requisitos, relaunch com CDP, headers, verificação de estado |
-| `discord-agent` | Agent | Worker read-only que audita o estado da guild e reporta evidência |
-| `kit/` | Scripts | `cdp.py` (sessão CDP + `api()` com retry de 429), `state.py` (dump read-only), `headers.py` (captura de headers **não-secretos**), `eval.mjs` (eval one-shot) |
+| Componente               | Tipo    | O que faz                                                                                                                                                     |
+| ------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `discord-control-kit`    | Skill   | Técnica núcleo: relançar o app com CDP, resolver o token (multi-runtime webpack), capturar headers anti-abuse, helper REST in-page, rate-limit-aware          |
+| `discord-server-build`   | Skill   | Guild do zero: categorias/canais, onboarding, screening, branding (ícone/banner/splash), hierarquia de cargos                                                 |
+| `discord-bots-dyno-zira` | Skill   | Configurar Dyno (API do dashboard) e Zira (button roles via API + UI)                                                                                         |
+| `discord-setup`          | Command | `/com.smookeydev.discord-control/discord-setup` — onboarding de máquina nova: pré-requisitos, relaunch com CDP, headers, verificação de estado                |
+| `discord-agent`          | Agent   | Worker read-only que audita o estado da guild e reporta evidência                                                                                             |
+| `kit/`                   | Scripts | `cdp.py` (sessão CDP + `api()` com retry de 429), `state.py` (dump read-only), `headers.py` (captura de headers **não-secretos**), `eval.mjs` (eval one-shot) |
 
 **Sem token de bot. Sem credenciais armazenadas. Sem terceiros.**
 
@@ -71,14 +76,15 @@ configuração completa do Dyno e menu de button-roles do Zira.
 ### SoarCode (Settings → Plugins → Install from GitHub)
 
 ```
-SmookeyDev/discord-control
+https://github.com/SmookeyDev/discord-control/tree/soarpack
 ```
 
 1. Settings → Plugins → Add → Install from GitHub
-2. Entre `SmookeyDev/discord-control`, inspecione, instale
-3. O plugin entra **desativado por design** — revise o código e ative
-4. Skills/commands/agents ficam disponíveis: `/discord-setup`, skills
-   `discord-control-kit`, `discord-server-build`, `discord-bots-dyno-zira`
+2. Entre a URL da branch `soarpack`, inspecione o manifest e as capabilities
+3. O SoarPack entra **desativado por design** — revise o código e ative
+4. A template fica disponível como
+   `/com.smookeydev.discord-control/discord-setup`; Skills e agents também usam
+   o namespace seguro do pacote
 
 ### Uso direto dos scripts (sem instalar)
 
@@ -118,14 +124,14 @@ with CdpSession() as cdp:
 Este plugin controla a **sua própria conta logada**. Isso é poderoso e tem
 consequências:
 
-| Regra | Por quê |
-| --- | --- |
-| **Token nunca é persistido** | Resolvido em memória via CDP; injetado só no helper `window.__api()` dentro da página |
-| **Authorization nunca é salvo** | `headers.py` grava em `/tmp/discord_sp.json` **apenas** headers não-secretos (X-Super-Properties, locale, timezone, installation id) |
-| **CDP aberto = conta exposta** | Porta 9222 deixa qualquer processo local falar com sua sessão logada. Ao terminar: `pkill -f "remote-debugging-port=9222"` e relance o app normal |
-| **Escritas são reais** | Deletes de canais/cargos, bans, PATCHes são irreversíveis — confirme escopo antes |
-| **Rate limits** | O kit dorme em `retry-after` (máx. 5 tentativas) e espaça escritas ~1s. Não faça loops de escrita crua |
-| **Anti-abuse** | Escritas sensíveis exigem o conjunto de headers capturado; fetch cru → 403 code 10008 |
+| Regra                           | Por quê                                                                                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Token nunca é persistido**    | Resolvido em memória via CDP; injetado só no helper `window.__api()` dentro da página                                                             |
+| **Authorization nunca é salvo** | `headers.py` grava em `/tmp/discord_sp.json` **apenas** headers não-secretos (X-Super-Properties, locale, timezone, installation id)              |
+| **CDP aberto = conta exposta**  | Porta 9222 deixa qualquer processo local falar com sua sessão logada. Ao terminar: `pkill -f "remote-debugging-port=9222"` e relance o app normal |
+| **Escritas são reais**          | Deletes de canais/cargos, bans, PATCHes são irreversíveis — confirme escopo antes                                                                 |
+| **Rate limits**                 | O kit dorme em `retry-after` (máx. 5 tentativas) e espaça escritas ~1s. Não faça loops de escrita crua                                            |
+| **Anti-abuse**                  | Escritas sensíveis exigem o conjunto de headers capturado; fetch cru → 403 code 10008                                                             |
 
 Nunca coloque token, Authorization, cookies ou SOPS material em commits,
 memories, logs ou relatórios.
@@ -136,8 +142,7 @@ memories, logs ou relatórios.
 
 ```
 .
-├── .claude-plugin/
-│   └── plugin.json          # manifest (skills, agents, commands)
+├── manifest.json            # manifest SoarPack v1 (autoritativo)
 ├── skills/
 │   ├── discord-control-kit/
 │   │   ├── SKILL.md         # técnica núcleo (CDP, token, headers, REST)
@@ -151,18 +156,18 @@ memories, logs ou relatórios.
 │   └── discord-bots-dyno-zira/
 │       └── SKILL.md         # dashboards Dyno + Zira (APIs internas)
 ├── commands/
-│   └── discord-setup.md     # /discord-setup
+│   └── discord-setup.md     # fonte de compatibilidade da template
+├── templates/
+│   └── discord-setup.md     # template nativa namespaced
 ├── agents/
 │   └── discord-agent.md     # worker read-only
-├── plugin.json              # manifest raiz (Agent Plugins v1 opcional)
+├── .claude-plugin/          # referência do formato da branch main
 └── README.md
 ```
 
-> **Por que `.claude-plugin/`?** O nome vem do formato de manifest que
-> popularizou o ecossistema (igual `AGENTS.md` nasceu no Codex). O SoarCode
-> importa 5 schemas de manifest; este é o único que carrega
-> skills + agents + commands juntos. O padrão neutro Agent Plugins v1 ainda
-> suporta apenas Skills e MCP.
+> Os arquivos `.claude-plugin/` e `commands/` foram mantidos para comparação com
+> a branch `main`. Nesta branch, o scanner prioriza o `manifest.json` SoarPack e
+> instala apenas o layout nativo declarado em `contents`.
 
 ---
 
@@ -177,8 +182,8 @@ Tudo foi validado nesta guild:
 - **Screening:** TERMS + regras
 - **Branding:** ícone/banner/splash aplicados e verificados no CDN
 - **Cargos:** 26 cargos; hierarquia `Zira(21) > Dyno(20) > Founder > Admin >
-  Moderator > Community Helper > Bot > Server Booster > Muted > Member >
-  stacks > idiomas > pings`
+Moderator > Community Helper > Bot > Server Booster > Muted > Member >
+stacks > idiomas > pings`
 - **Bots:** Dyno (moderação, automod com 6 regras, autorole Member, welcome,
   actionlog em #mod-log) e Zira (menu de button roles fixado em #get-roles
   com 12 botões — pings em toggle, idiomas em grupo single-select, stacks)
