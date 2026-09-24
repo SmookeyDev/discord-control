@@ -1,0 +1,8 @@
+{
+  "name": "discord-control",
+  "version": "0.1.0",
+  "description": "SoarPack: control a Discord server end-to-end the way SoarLabz does — CDP hook on the desktop app, token in memory, authentic anti-abuse headers, guild/branding/roles/bots automation.",
+  "skills": "./skills",
+  "commands": "./commands",
+  "agents": "./agents"
+}
