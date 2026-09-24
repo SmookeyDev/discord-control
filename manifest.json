@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "com.smookeydev.discord-control",
+  "version": "1.0.0",
+  "display": {
+    "name": "Discord Control",
+    "description": "Control and audit Discord servers through the logged-in desktop app using reviewed CDP workflows.",
+    "category": "automation",
+    "license": "MIT"
+  },
+  "publisher": {
+    "id": "com.smookeydev",
+    "name": "SmookeyDev"
+  },
+  "compatibility": {
+    "soarcode": ">=0.3.0"
+  },
+  "contents": {
+    "skills": [
+      {
+        "id": "discord-control-kit",
+        "path": "skills/discord-control-kit/SKILL.md"
+      },
+      {
+        "id": "discord-server-build",
+        "path": "skills/discord-server-build/SKILL.md"
+      },
+      {
+        "id": "discord-bots-dyno-zira",
+        "path": "skills/discord-bots-dyno-zira/SKILL.md"
+      }
+    ],
+    "mcpServers": [],
+    "agents": [
+      {
+        "id": "discord-agent",
+        "path": "agents/discord-agent.md"
+      }
+    ],
+    "templates": [
+      {
+        "id": "discord-setup",
+        "path": "templates/discord-setup.md"
+      }
+    ],
+    "hooks": []
+  },
+  "capabilities": ["skill.load"]
+}
