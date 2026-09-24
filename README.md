@@ -22,14 +22,14 @@ configuração completa do Dyno e menu de button-roles do Zira.
 
 ## O que este plugin faz
 
-| Componente | Tipo | O que faz |
-| --- | --- | --- |
-| `discord-control-kit` | Skill | Técnica núcleo: relançar o app com CDP, resolver o token (multi-runtime webpack), capturar headers anti-abuse, helper REST in-page, rate-limit-aware |
-| `discord-server-build` | Skill | Guild do zero: categorias/canais, onboarding, screening, branding (ícone/banner/splash), hierarquia de cargos |
-| `discord-bots-dyno-zira` | Skill | Configurar Dyno (API do dashboard) e Zira (button roles via API + UI) |
-| `discord-setup` | Command | `/discord-setup` — onboarding de máquina nova: pré-requisitos, relaunch com CDP, headers, verificação de estado |
-| `discord-agent` | Agent | Worker read-only que audita o estado da guild e reporta evidência |
-| `kit/` | Scripts | `cdp.py` (sessão CDP + `api()` com retry de 429), `state.py` (dump read-only), `headers.py` (captura de headers **não-secretos**), `eval.mjs` (eval one-shot) |
+| Componente               | Tipo    | O que faz                                                                                                                                                     |
+| ------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `discord-control-kit`    | Skill   | Técnica núcleo: relançar o app com CDP, resolver o token (multi-runtime webpack), capturar headers anti-abuse, helper REST in-page, rate-limit-aware          |
+| `discord-server-build`   | Skill   | Guild do zero: categorias/canais, onboarding, screening, branding (ícone/banner/splash), hierarquia de cargos                                                 |
+| `discord-bots-dyno-zira` | Skill   | Configurar Dyno (API do dashboard) e Zira (button roles via API + UI)                                                                                         |
+| `discord-setup`          | Command | `/com.smookeydev.discord-control/discord-setup` — onboarding de máquina nova: pré-requisitos, relaunch com CDP, headers, verificação de estado                |
+| `discord-agent`          | Agent   | Worker read-only que audita o estado da guild e reporta evidência                                                                                             |
+| `kit/`                   | Scripts | `cdp.py` (sessão CDP + `api()` com retry de 429), `state.py` (dump read-only), `headers.py` (captura de headers **não-secretos**), `eval.mjs` (eval one-shot) |
 
 **Sem token de bot. Sem credenciais armazenadas. Sem terceiros.**
 
@@ -82,8 +82,9 @@ https://github.com/SmookeyDev/discord-control/tree/soarpack
 1. Settings → Plugins → Add → Install from GitHub
 2. Entre a URL da branch `soarpack`, inspecione o manifest e as capabilities
 3. O SoarPack entra **desativado por design** — revise o código e ative
-4. Skills/commands/agents ficam disponíveis: `/discord-setup`, skills
-   `discord-control-kit`, `discord-server-build`, `discord-bots-dyno-zira`
+4. A template fica disponível como
+   `/com.smookeydev.discord-control/discord-setup`; Skills e agents também usam
+   o namespace seguro do pacote
 
 ### Uso direto dos scripts (sem instalar)
 
@@ -123,14 +124,14 @@ with CdpSession() as cdp:
 Este plugin controla a **sua própria conta logada**. Isso é poderoso e tem
 consequências:
 
-| Regra | Por quê |
-| --- | --- |
-| **Token nunca é persistido** | Resolvido em memória via CDP; injetado só no helper `window.__api()` dentro da página |
-| **Authorization nunca é salvo** | `headers.py` grava em `/tmp/discord_sp.json` **apenas** headers não-secretos (X-Super-Properties, locale, timezone, installation id) |
-| **CDP aberto = conta exposta** | Porta 9222 deixa qualquer processo local falar com sua sessão logada. Ao terminar: `pkill -f "remote-debugging-port=9222"` e relance o app normal |
-| **Escritas são reais** | Deletes de canais/cargos, bans, PATCHes são irreversíveis — confirme escopo antes |
-| **Rate limits** | O kit dorme em `retry-after` (máx. 5 tentativas) e espaça escritas ~1s. Não faça loops de escrita crua |
-| **Anti-abuse** | Escritas sensíveis exigem o conjunto de headers capturado; fetch cru → 403 code 10008 |
+| Regra                           | Por quê                                                                                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Token nunca é persistido**    | Resolvido em memória via CDP; injetado só no helper `window.__api()` dentro da página                                                             |
+| **Authorization nunca é salvo** | `headers.py` grava em `/tmp/discord_sp.json` **apenas** headers não-secretos (X-Super-Properties, locale, timezone, installation id)              |
+| **CDP aberto = conta exposta**  | Porta 9222 deixa qualquer processo local falar com sua sessão logada. Ao terminar: `pkill -f "remote-debugging-port=9222"` e relance o app normal |
+| **Escritas são reais**          | Deletes de canais/cargos, bans, PATCHes são irreversíveis — confirme escopo antes                                                                 |
+| **Rate limits**                 | O kit dorme em `retry-after` (máx. 5 tentativas) e espaça escritas ~1s. Não faça loops de escrita crua                                            |
+| **Anti-abuse**                  | Escritas sensíveis exigem o conjunto de headers capturado; fetch cru → 403 code 10008                                                             |
 
 Nunca coloque token, Authorization, cookies ou SOPS material em commits,
 memories, logs ou relatórios.
@@ -181,8 +182,8 @@ Tudo foi validado nesta guild:
 - **Screening:** TERMS + regras
 - **Branding:** ícone/banner/splash aplicados e verificados no CDN
 - **Cargos:** 26 cargos; hierarquia `Zira(21) > Dyno(20) > Founder > Admin >
-  Moderator > Community Helper > Bot > Server Booster > Muted > Member >
-  stacks > idiomas > pings`
+Moderator > Community Helper > Bot > Server Booster > Muted > Member >
+stacks > idiomas > pings`
 - **Bots:** Dyno (moderação, automod com 6 regras, autorole Member, welcome,
   actionlog em #mod-log) e Zira (menu de button roles fixado em #get-roles
   com 12 botões — pings em toggle, idiomas em grupo single-select, stacks)
